@@ -1,0 +1,38 @@
+import { z } from 'zod';
+import { BadRequestError } from '../utils/errors.util.js';
+
+export const TaskStatusEnum = z.enum(['todo', 'in-progress', 'completed']);
+export const TaskPriorityEnum = z.enum(['low', 'medium', 'high']);
+
+export const CreateTaskSchema = z.object({
+    organizationId: z.string().uuid({ message: 'organizationId harus berupa format UUID yang valid' }),
+    title: z.string().trim().min(1, { message: 'title tidak boleh kosong' }).max(100, { message: 'title maksimal 100 karakter' }),
+    description: z.string().trim().max(1000, { message: 'description maksimal 1000 karakter' }).optional(),
+    dueDate: z.string().datetime({ message: 'dueDate harus berupa format ISO datetime yang valid' }).optional(),
+    priority: TaskPriorityEnum.optional().default('medium'),
+    status: TaskStatusEnum.optional().default('todo'),
+    tags: z.array(z.string().max(50)).optional().default([]),
+});
+
+export const UpdateTaskSchema = CreateTaskSchema.omit({ organizationId: true })
+    .partial()
+    .refine((data) => Object.keys(data).length > 0, { message: 'Payload update tidak boleh kosong' });
+
+export const TaskFilterSchema = z.object({
+    organizationId: z.string().uuid({ message: 'Query organizationId wajib berupa UUID yang valid' }),
+    search: z.string().optional(),
+    status: TaskStatusEnum.optional(),
+    priority: TaskPriorityEnum.optional(),
+    page: z.coerce.number().int().positive().optional().default(1),
+    pageSize: z.coerce.number().int().positive().max(100).optional().default(10),
+});
+
+export function validateWithZod<T>(schema: z.ZodSchema<T>, data: unknown): T {
+    const result = schema.safeParse(data);
+    if (!result.success) {
+        const firstIssue = result.error.issues[0];
+        const errorMessage = `${firstIssue.path.join('.')}: ${firstIssue.message}`;
+        throw new BadRequestError(errorMessage);
+    }
+    return result.data;
+}
