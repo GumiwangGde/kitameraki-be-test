@@ -23,3 +23,13 @@ export function getTaskContainer(): Container {
 
   return containerInstance;
 }
+
+export async function checkDatabaseHealth(): Promise<boolean> {
+  try {
+    const container = getTaskContainer();
+    await container.read();
+    return true;
+  } catch {
+    return false;
+  }
+}
