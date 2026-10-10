@@ -1,0 +1,89 @@
+# Task Management Backend API
+
+Backend service for the Task Management Application built with Azure Functions v4 (Node.js / TypeScript) and Azure Cosmos DB.
+
+---
+
+## Prerequisites
+
+- **Node.js**: v18 or v20
+- **Azure Functions Core Tools v4**:
+  ```bash
+  npm install -g azure-functions-core-tools@4 --unsafe-perm true
+  ```
+- **Azure Cosmos DB**: An active Cosmos DB account connection string (or local Cosmos DB Emulator).
+
+---
+
+## Local Setup
+
+### 1. Install Dependencies
+```bash
+npm install
+```
+
+### 2. Configure Environment Settings
+Copy the example settings file:
+```bash
+cp local.settings.json.example local.settings.json
+```
+*(On Windows PowerShell: `Copy-Item local.settings.json.example local.settings.json`)*
+
+Open `local.settings.json` and set your `COSMOS_CONNECTION_STRING`:
+```json
+{
+  "IsEncrypted": false,
+  "Values": {
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "COSMOS_CONNECTION_STRING": "AccountEndpoint=https://<your-account>.documents.azure.com:443/;AccountKey=<your-key>;",
+    "COSMOS_DATABASE_NAME": "TaskApp",
+    "COSMOS_CONTAINER_NAME": "Tasks"
+  },
+  "Host": {
+    "CORS": "*"
+  }
+}
+```
+
+---
+
+## Running the Application
+
+### 1. (Optional) Seed Sample Tasks
+Populate the database with 20 realistic tasks covering different statuses, priorities, due dates, and tags:
+```bash
+npm run seed
+```
+> Default seed `organizationId`: `d3b07384-d113-46c1-a9c1-236b28900a01`
+
+### 2. Start Local Server
+```bash
+npm start
+```
+The local server will start at `http://localhost:7071`.
+
+---
+
+## Testing
+
+Run unit tests via Vitest:
+```bash
+npm test
+```
+
+---
+
+## API Endpoints
+
+Base URL: `http://localhost:7071/api`
+
+| Method | Endpoint | Query Parameters | Body | Description |
+|---|---|---|---|---|
+| `GET` | `/HealthCheck` | - | - | Server and Cosmos DB connection health check |
+| `GET` | `/GetTasks` | `organizationId` (required), `search`, `status`, `priority`, `sortBy`, `sortOrder`, `page`, `pageSize` | - | Paginated task list with search & filter |
+| `GET` | `/GetTask` | `id`, `organizationId` | - | Retrieve single task details |
+| `POST` | `/InsertTask` | - | JSON Task DTO | Create task (Returns 201) |
+| `PATCH` | `/UpdateTask` | `id`, `organizationId` | JSON Partial Task DTO | Update task fields (Patch API) |
+| `DELETE` | `/DeleteTask` | `id`, `organizationId` | - | Delete single task |
+| `DELETE` | `/BulkDeleteTasks` | `organizationId` | `string[]` (UUIDs) | Delete multiple tasks in parallel |

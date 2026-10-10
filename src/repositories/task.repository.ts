@@ -43,7 +43,16 @@ export class TaskRepository {
 
     async findWithFilters(filters: TaskQueryFilterDTO): Promise<PaginatedTasksDTO> {
         const container = getTaskContainer();
-        const { organizationId, search, status, priority, page = 1, pageSize = 10 } = filters;
+        const {
+            organizationId,
+            search,
+            status,
+            priority,
+            sortBy,
+            sortOrder = 'desc',
+            page = 1,
+            pageSize = 10,
+        } = filters;
 
         const safePage = Math.max(1, page);
         const safePageSize = Math.min(Math.max(1, pageSize), 100);
@@ -68,13 +77,24 @@ export class TaskRepository {
 
         const whereClause = `WHERE ${conditions.join(' AND ')}`;
 
+        const SORT_FIELD_MAP: Record<string, string> = {
+            dueDate: 'c.dueDate',
+            priority: 'c.priority',
+            status: 'c.status',
+            title: 'c.title',
+            createdAt: 'c.createdAt',
+        }
+
+        const targetSortField = sortBy && SORT_FIELD_MAP[sortBy] ? SORT_FIELD_MAP[sortBy] : 'c._ts';
+        const targetSortOrder = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+
         const countQuerySpec: SqlQuerySpec = {
             query: `SELECT VALUE COUNT(1) FROM c ${whereClause}`,
             parameters: parameters,
         };
 
         const dataQuerySpec: SqlQuerySpec = {
-            query: `SELECT * FROM c ${whereClause} ORDER BY c._ts DESC OFFSET @offset LIMIT @pageSize`,
+            query: `SELECT * FROM c ${whereClause} ORDER BY ${targetSortField} ${targetSortOrder} OFFSET @offset LIMIT @pageSize`,
             parameters: [
                 ...parameters,
                 { name: '@offset', value: offset },

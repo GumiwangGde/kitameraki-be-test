@@ -18,6 +18,8 @@ export interface TaskQueryFilterDTO {
     search?: string;
     status?: TaskStatus;
     priority?: TaskPriority;
+    sortBy?: 'title' | 'dueDate' | 'priority' | 'status' | 'createdAt';
+    sortOrder?: 'asc' | 'desc';
     page?: number;
     pageSize?: number;
 }
