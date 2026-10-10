@@ -87,3 +87,8 @@ Base URL: `http://localhost:7071/api`
 | `PATCH` | `/UpdateTask` | `id`, `organizationId` | JSON Partial Task DTO | Update task fields (Patch API) |
 | `DELETE` | `/DeleteTask` | `id`, `organizationId` | - | Delete single task |
 | `DELETE` | `/BulkDeleteTasks` | `organizationId` | `string[]` (UUIDs) | Delete multiple tasks in parallel |
+
+- **Azure Cosmos DB Configuration**:
+  - Database Name: `TaskApp`
+  - Container Name: `Tasks`
+  - Partition Key: `/organizationId`
