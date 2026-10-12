@@ -12,6 +12,7 @@ export const CreateTaskSchema = z.object({
     priority: TaskPriorityEnum.optional().default('medium'),
     status: TaskStatusEnum.optional().default('todo'),
     tags: z.array(z.string().max(50)).optional().default([]),
+    customFields: z.record(z.string(), z.any()).optional().default({}),
 });
 
 export const UpdateTaskSchema = z.object({
@@ -21,6 +22,7 @@ export const UpdateTaskSchema = z.object({
     priority: TaskPriorityEnum.optional(),
     status: TaskStatusEnum.optional(),
     tags: z.array(z.string().max(50)).optional(),
+    customFields: z.record(z.string(), z.any()).optional(),
 }).refine((data) => Object.keys(data).length > 0, { message: 'Payload update tidak boleh kosong' });
 
 export const TaskFilterSchema = z.object({
