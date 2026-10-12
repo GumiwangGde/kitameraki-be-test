@@ -1,5 +1,4 @@
 import { randomUUID } from 'node:crypto';
-import { z } from 'zod';
 import { TaskRepository, taskRepository } from '../repositories/task.repository.js';
 import { Task } from '../models/task.model.js';
 import { PaginatedTasksDTO } from '../dtos/task.dto.js';
@@ -8,6 +7,7 @@ import {
   CreateTaskSchema,
   UpdateTaskSchema,
   TaskFilterSchema,
+  BulkDeleteTaskSchema,
   validateWithZod,
 } from '../validators/task.validator.js';
 
@@ -58,7 +58,7 @@ export class TaskService {
 
   async bulkDeleteTasks(idsInput: unknown, organizationId: string): Promise<{ deletedCount: number }> {
     if (!organizationId) throw new BadRequestError('Parameter organizationId wajib diisi!');
-    const ids = validateWithZod(z.array(z.string().uuid()).min(1, { message: 'Array task ids tidak boleh kosong!' }), idsInput);
+    const ids = validateWithZod(BulkDeleteTaskSchema, idsInput);
     const deletedCount = await this.repo.bulkDelete(ids, organizationId);
     return { deletedCount };
   }

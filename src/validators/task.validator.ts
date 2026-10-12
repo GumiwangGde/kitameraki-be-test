@@ -36,6 +36,10 @@ export const TaskFilterSchema = z.object({
     pageSize: z.coerce.number().int().positive().max(100).optional().default(10),
 });
 
+export const BulkDeleteTaskSchema = z.array(
+    z.string().uuid({ message: 'Setiap ID task harus berupa format UUID yang valid' })
+).min(1, { message: 'Array task ids tidak boleh kosong!' });
+
 export function validateWithZod<T>(schema: z.ZodSchema<T>, data: unknown): T {
     const result = schema.safeParse(data);
     if (!result.success) {

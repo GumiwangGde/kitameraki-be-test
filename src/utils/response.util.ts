@@ -31,7 +31,24 @@ export function errorResponse(error: unknown, context: InvocationContext): HttpR
             },
         };
     }
-    
+
+    if (error instanceof SyntaxError) {
+        context.warn(`[BAD_REQUEST] Malformed JSON: ${error.message}`);
+        return {
+            status: 400,
+            jsonBody: {
+                success: false,
+                error: {
+                    code: 'BAD_REQUEST',
+                    message: 'Format request body tidak valid (harus berupa JSON yang valid).',
+                },
+            },
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        };
+    }
+
     const unexpectedError = error instanceof Error ? error : new Error(String(error));
     context.error(`[UNHANDLED_ERROR] ${unexpectedError.message}`, unexpectedError.stack);
     return {

@@ -9,6 +9,7 @@ export interface CreateTaskDTO {
     priority?: TaskPriority;
     status?: TaskStatus;
     tags?: string[];
+    customFields?: Record<string, any>;
 }
 
 export type UpdateTaskDTO = Partial<Omit<Task, 'id' | 'organizationId'>>;
