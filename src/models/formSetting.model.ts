@@ -1,3 +1,5 @@
+export const FORM_SETTINGS_DOC_ID = 'form-settings';
+
 export type FieldType = 'text' | 'date' | 'datetime' | 'email';
 
 export interface FormFieldSetting {

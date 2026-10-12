@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { FormSettingService } from './formSetting.service.js';
 import { FormSettingRepository } from '../repositories/formSetting.repository.js';
 import { BadRequestError } from '../utils/errors.util.js';
-import { FormSetting, FormFieldSetting } from '../models/formSetting.model.js';
+import { FormSetting, FormFieldSetting, FORM_SETTINGS_DOC_ID } from '../models/formSetting.model.js';
 
 describe('FormSettingService Unit Tests (Part 2)', () => {
   let service: FormSettingService;
@@ -30,7 +30,7 @@ describe('FormSettingService Unit Tests (Part 2)', () => {
     },
   ];
   const mockSetting: FormSetting = {
-    id: 'form-settings',
+    id: FORM_SETTINGS_DOC_ID,
     organizationId: mockOrgId,
     fields: mockFields,
     updatedAt: new Date().toISOString(),
@@ -53,7 +53,7 @@ describe('FormSettingService Unit Tests (Part 2)', () => {
     it('harus mengembalikan default fields kosong jika organisasi belum pernah setting form', async () => {
       (mockRepo.findByOrganizationId as any).mockResolvedValue(null);
       const result = await service.getSettings(mockOrgId);
-      expect(result.id).toBe('form-settings');
+      expect(result.id).toBe(FORM_SETTINGS_DOC_ID);
       expect(result.organizationId).toBe(mockOrgId);
       expect(result.fields).toEqual([]);
     });
@@ -69,7 +69,7 @@ describe('FormSettingService Unit Tests (Part 2)', () => {
         fields: mockFields,
       };
       const result = await service.saveSettings(payload);
-      expect(result.id).toBe('form-settings');
+      expect(result.id).toBe(FORM_SETTINGS_DOC_ID);
       expect(result.organizationId).toBe(mockOrgId);
       expect(result.fields.length).toBe(2);
       expect(result.updatedAt).toBeDefined();

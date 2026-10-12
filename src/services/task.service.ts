@@ -19,8 +19,14 @@ export class TaskService {
     return this.repo.findWithFilters(validatedFilter);
   }
 
+  private validateRequiredParams(id: string, organizationId: string): void {
+    if (!id || !organizationId) {
+      throw new BadRequestError('Parameter id dan organizationId wajib diisi!');
+    }
+  }
+
   async getTaskById(id: string, organizationId: string): Promise<Task> {
-    if (!id || !organizationId) throw new BadRequestError('Parameter id dan organizationId wajib diisi!');
+    this.validateRequiredParams(id, organizationId);
     const task = await this.repo.findById(id, organizationId);
     if (!task) throw new NotFoundError(`Task dengan ID '${id}' tidak ditemukan.`);
     return task;
@@ -41,7 +47,7 @@ export class TaskService {
   }
 
   async updateTask(id: string, organizationId: string, input: unknown): Promise<Task> {
-    if (!id || !organizationId) throw new BadRequestError('Parameter id dan organizationId wajib diisi!');
+    this.validateRequiredParams(id, organizationId);
     const validatedUpdates = validateWithZod(UpdateTaskSchema, input);
     const existingTask = await this.repo.findById(id, organizationId);
     if (!existingTask) throw new NotFoundError(`Task dengan ID '${id}' tidak ditemukan untuk diperbarui.`);
@@ -51,7 +57,7 @@ export class TaskService {
   }
 
   async deleteTask(id: string, organizationId: string): Promise<void> {
-    if (!id || !organizationId) throw new BadRequestError('Parameter id dan organizationId wajib diisi!');
+    this.validateRequiredParams(id, organizationId);
     const success = await this.repo.delete(id, organizationId);
     if (!success) throw new NotFoundError(`Task dengan ID '${id}' tidak ditemukan untuk dihapus.`);
   }

@@ -4,11 +4,19 @@ import { TaskQueryFilterDTO, PaginatedTasksDTO, UpdateTaskDTO } from '../dtos/ta
 import { Task } from '../models/task.model.js';
 import { ignoreNotFound, toPatchOperations } from '../utils/cosmos.util.js';
 
+const SORT_FIELD_MAP: Readonly<Record<string, string>> = Object.freeze({
+    dueDate: 'c.dueDate',
+    priority: 'c.priority',
+    status: 'c.status',
+    title: 'c.title',
+    createdAt: 'c.createdAt',
+});
+
 export class TaskRepository {
     async create(task: Task): Promise<Task> {
         const container = getTaskContainer();
-        const { resource } = await container.items.create(task);
-        return resource as Task;
+        const { resource } = await container.items.create<Task>(task);
+        return resource!;
     }
 
     async findById(id: string, organizationId: string): Promise<Task | null> {
@@ -76,14 +84,6 @@ export class TaskRepository {
         }
 
         const whereClause = `WHERE ${conditions.join(' AND ')}`;
-
-        const SORT_FIELD_MAP: Record<string, string> = {
-            dueDate: 'c.dueDate',
-            priority: 'c.priority',
-            status: 'c.status',
-            title: 'c.title',
-            createdAt: 'c.createdAt',
-        }
 
         const targetSortField = sortBy && SORT_FIELD_MAP[sortBy] ? SORT_FIELD_MAP[sortBy] : 'c._ts';
         const targetSortOrder = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';

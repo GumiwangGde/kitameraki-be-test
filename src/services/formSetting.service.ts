@@ -1,5 +1,5 @@
 import { FormSettingRepository, formSettingRepository } from '../repositories/formSetting.repository.js';
-import { FormSetting } from '../models/formSetting.model.js';
+import { FormSetting, FORM_SETTINGS_DOC_ID } from '../models/formSetting.model.js';
 import { SaveFormSettingSchema } from '../validators/formSetting.validator.js';
 import { validateWithZod } from '../validators/task.validator.js';
 import { BadRequestError } from '../utils/errors.util.js';
@@ -16,7 +16,7 @@ export class FormSettingService {
 
         return (
             settings || {
-                id: 'form-settings',
+                id: FORM_SETTINGS_DOC_ID,
                 organizationId,
                 fields: [],
             }
@@ -27,7 +27,7 @@ export class FormSettingService {
         const validated = validateWithZod(SaveFormSettingSchema, input);
 
         const formSetting: FormSetting = {
-            id: 'form-settings',
+            id: FORM_SETTINGS_DOC_ID,
             organizationId: validated.organizationId,
             fields: validated.fields,
             updatedAt: new Date().toISOString(),
