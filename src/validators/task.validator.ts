@@ -30,6 +30,8 @@ export const TaskFilterSchema = z.object({
     search: z.string().optional(),
     status: TaskStatusEnum.optional(),
     priority: TaskPriorityEnum.optional(),
+    dueDate: z.string().optional(),
+    tags: z.string().optional(),
     sortBy: z.enum(['title', 'dueDate', 'priority', 'status', 'createdAt']).optional(),
     sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
     page: z.coerce.number().int().positive().optional().default(1),

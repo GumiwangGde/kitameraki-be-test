@@ -19,6 +19,8 @@ export interface TaskQueryFilterDTO {
     search?: string;
     status?: TaskStatus;
     priority?: TaskPriority;
+    dueDate?: string,
+    tags?: string,
     sortBy?: 'title' | 'dueDate' | 'priority' | 'status' | 'createdAt';
     sortOrder?: 'asc' | 'desc';
     page?: number;

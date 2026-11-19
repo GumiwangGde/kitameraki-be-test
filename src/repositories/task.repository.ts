@@ -56,6 +56,8 @@ export class TaskRepository {
             search,
             status,
             priority,
+            dueDate,
+            tags,
             sortBy,
             sortOrder = 'desc',
             page = 1,
@@ -75,6 +77,15 @@ export class TaskRepository {
         if (priority) {
             conditions.push('c.priority = @priority');
             parameters.push({ name: '@priority', value: priority });
+        }
+        if (dueDate) {
+            conditions.push('STARTSWITH(c.dueDate, @dueDate)');
+            parameters.push({ name: '@dueDate', value: dueDate });
+        }
+        if (tags && tags.trim()) {
+            const cleanTag = tags.trim().replace(/^#/, '').toLowerCase();
+            conditions.push('EXISTS(SELECT VALUE t FROM t IN c.tags WHERE CONTAINS(LOWER(t), @tags))');
+            parameters.push({ name: '@tags', value: cleanTag });
         }
         if (search && search.trim() !== '') {
             conditions.push(
