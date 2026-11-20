@@ -44,9 +44,16 @@ export class TaskRepository {
     }
 
     async bulkDelete(ids: string[], organizationId: string): Promise<number> {
-        const deletePromises = ids.map((id) => this.delete(id, organizationId));
-        const results = await Promise.all(deletePromises);
-        return results.filter(Boolean).length;
+        const BATCH_SIZE = 10;
+        let successCount = 0;
+
+        for (let i = 0; i < ids.length; i+= BATCH_SIZE) {
+            const chunk = ids.slice(i, i + BATCH_SIZE);
+            const result = await Promise.all(chunk.map((id) => this.delete(id, organizationId)));
+            successCount += result.filter(Boolean).length;
+        }
+
+        return successCount;
     }
 
     async findWithFilters(filters: TaskQueryFilterDTO): Promise<PaginatedTasksDTO> {
@@ -84,7 +91,7 @@ export class TaskRepository {
         }
         if (tags && tags.trim()) {
             const cleanTag = tags.trim().replace(/^#/, '').toLowerCase();
-            conditions.push('EXISTS(SELECT VALUE t FROM t IN c.tags WHERE CONTAINS(LOWER(t), @tags))');
+            conditions.push('ARRAY_CONTAINS(c.tags, @tags)');
             parameters.push({ name: '@tags', value: cleanTag });
         }
         if (search && search.trim() !== '') {
@@ -124,7 +131,7 @@ export class TaskRepository {
         const items = dataResponse.resources;
         const totalPages = Math.ceil(total / safePageSize);
 
-        return { items, total, page: safePage, pageSize: safePageSize, totalPages };
+        return { items, total, page: safePage, pageSize: safePageSize, totalPages,  };
     }
 }
 

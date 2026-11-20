@@ -3,7 +3,6 @@ import { TaskService } from './task.service.js';
 import { TaskRepository } from '../repositories/task.repository.js';
 import { BadRequestError, NotFoundError } from '../utils/errors.util.js';
 import { Task } from '../models/task.model.js';
-import { randomUUID } from 'node:crypto';
 
 describe('TaskService Unit Tests', () => {
     let taskService: TaskService;
@@ -126,7 +125,6 @@ describe('TaskService Unit Tests', () => {
     describe('updateTask', () => {
         it('harus berhasil mengupdate task jika data ada di repository', async () => {
             const updatedTask = { ...mockTask, title: 'Judul Baru Diupdate' };
-            (mockRepo.findById as any).mockResolvedValue(mockTask);
             (mockRepo.update as any).mockResolvedValue(updatedTask);
             const result = await taskService.updateTask(mockTaskId, mockOrgId, {
                 title: 'Judul Baru Diupdate',
@@ -139,14 +137,13 @@ describe('TaskService Unit Tests', () => {
             );
         });
         it('harus melempar NotFoundError jika task tidak ada di database saat mau diupdate', async () => {
-            (mockRepo.findById as any).mockResolvedValue(null);
+            (mockRepo.update as any).mockResolvedValue(null);
             await expect(
                 taskService.updateTask(mockTaskId, mockOrgId, { title: 'Judul Baru' })
             ).rejects.toThrow(NotFoundError);
-            expect(mockRepo.update).not.toHaveBeenCalled();
+            expect(mockRepo.update).toHaveBeenCalled();
         });
         it('harus melempar BadRequestError jika payload update kosong', async () => {
-            (mockRepo.findById as any).mockResolvedValue(mockTask);
             await expect(taskService.updateTask(mockTaskId, mockOrgId, {})).rejects.toThrow(
                 BadRequestError
             );
@@ -170,7 +167,7 @@ describe('TaskService Unit Tests', () => {
     describe('bulkDeleteTasks', () => {
         it('harus berhasil menghapus banyak task jika array UUID valid', async () => {
             (mockRepo.bulkDelete as any).mockResolvedValue(2);
-            const ids = [randomUUID(), randomUUID()];
+            const ids = [crypto.randomUUID(), crypto.randomUUID()];
             const result = await taskService.bulkDeleteTasks(ids, mockOrgId);
             expect(result.deletedCount).toBe(2);
             expect(mockRepo.bulkDelete).toHaveBeenCalledWith(ids, mockOrgId);

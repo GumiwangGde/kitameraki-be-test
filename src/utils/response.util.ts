@@ -1,5 +1,10 @@
-import { HttpResponseInit, InvocationContext } from '@azure/functions';
+import { HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import { AppError } from './errors.util.js';
+
+type ControllerLogic<T> = (
+    request: HttpRequest,
+    context: InvocationContext
+) => Promise<T> | T;
 
 export function successResponse<T>(data: T, status: number = 200): HttpResponseInit {
     return {
@@ -63,5 +68,16 @@ export function errorResponse(error: unknown, context: InvocationContext): HttpR
         headers: {
             'Content-Type': 'application/json',
         },
+    };
+}
+
+export function handleHttp<T>(logic: ControllerLogic<T>, successStatus: number = 200) {
+    return async (request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> => {
+        try {
+            const data = await logic(request, context);
+            return successResponse(data, successStatus);
+        } catch (error) {
+            return errorResponse(error, context);
+        }
     };
 }
