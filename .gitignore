@@ -1,3 +1,5 @@
+.vscode/
+
 # Logs
 logs
 *.log
@@ -94,8 +96,7 @@ appsettings.json
 local.settings.json
 
 # Azurite artifacts
-.azurite
-AzuriteConfig
-__blobstorage__
-__queuestorage__
-__azurite_db*__.json
+.azurite/
+__azurite*
+__blobstorage__/
+__queuestorage__/

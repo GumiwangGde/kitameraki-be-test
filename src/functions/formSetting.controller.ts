@@ -1,35 +1,17 @@
-import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
+import { app } from '@azure/functions';
 import { formSettingService } from '../services/formSetting.service.js';
-import { successResponse, errorResponse } from '../utils/response.util.js';
+import { handleHttp } from '../utils/response.util.js';
 
-export async function getFormSettingsHandler(
-    request: HttpRequest,
-    context: InvocationContext
-): Promise<HttpResponseInit> {
+export const getFormSettingsHandler = handleHttp(async (request, context) => {
     context.log(`[HTTP GET] Processing GetFormSettings: ${request.url}`);
-    try {
-        const organizationId = request.query.get('organizationId') || '';
-        const result = await formSettingService.getSettings(organizationId);
-        return successResponse(result, 200);
-    } catch (error) {
-        return errorResponse(error, context);
-    }
-}
-
+    const organizationId = request.query.get('organizationId') || '';
+    return formSettingService.getSettings(organizationId);
+});
 app.http('GetFormSettings', { methods: ['GET'], authLevel: 'anonymous', handler: getFormSettingsHandler });
 
-export async function saveFormSettingsHandler(
-    request: HttpRequest,
-    context: InvocationContext
-): Promise<HttpResponseInit> {
+export const saveFormSettingsHandler = handleHttp(async (request, context) => {
     context.log(`[HTTP POST] Processing SaveFormSettings: ${request.url}`);
-    try {
-        const body = await request.json();
-        const result = await formSettingService.saveSettings(body);
-        return successResponse(result, 200);
-    } catch (error) {
-        return errorResponse(error, context);
-    }
-}
-
+    const body = await request.json();
+    return formSettingService.saveSettings(body);
+})
 app.http('SaveFormSettings', { methods: ['POST'], authLevel: 'anonymous', handler: saveFormSettingsHandler });

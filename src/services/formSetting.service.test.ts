@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { randomUUID } from 'node:crypto';
 import { FormSettingService } from './formSetting.service.js';
 import { FormSettingRepository } from '../repositories/formSetting.repository.js';
 import { BadRequestError } from '../utils/errors.util.js';
@@ -8,10 +7,10 @@ import { FormSetting, FormFieldSetting, FORM_SETTINGS_DOC_ID } from '../models/f
 describe('FormSettingService Unit Tests (Part 2)', () => {
   let service: FormSettingService;
   let mockRepo: Partial<FormSettingRepository>;
-  const mockOrgId = randomUUID();
+  const mockOrgId = crypto.randomUUID();
   const mockFields: FormFieldSetting[] = [
     {
-      id: 'field-1',
+      id: mockOrgId,
       key: 'clientEmail',
       label: 'Client Email',
       type: 'email',
@@ -20,7 +19,7 @@ describe('FormSettingService Unit Tests (Part 2)', () => {
       required: true,
     },
     {
-      id: 'field-2',
+      id: mockOrgId,
       key: 'meetingDate',
       label: 'Meeting Date & Time',
       type: 'datetime',
@@ -80,7 +79,7 @@ describe('FormSettingService Unit Tests (Part 2)', () => {
         organizationId: mockOrgId,
         fields: [
           {
-            id: 'field-x',
+            id: mockOrgId,
             key: 'invalidCol',
             label: 'Invalid Column',
             type: 'text',
@@ -97,7 +96,7 @@ describe('FormSettingService Unit Tests (Part 2)', () => {
         organizationId: mockOrgId,
         fields: [
           {
-            id: 'field-y',
+            id: mockOrgId,
             key: 'customNumber',
             label: 'Number Field',
             type: 'number',

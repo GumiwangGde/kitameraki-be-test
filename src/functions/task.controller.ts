@@ -1,90 +1,52 @@
-import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
+import { app } from '@azure/functions';
 import { taskService } from '../services/task.service.js';
-import { successResponse, errorResponse } from '../utils/response.util.js';
+import { handleHttp } from '../utils/response.util.js';
 
-export async function getTasksHandler(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+export const getTasksHandler = handleHttp(async (request, context) => {
     context.log(`[HTTP GET] Processing GetTasks: ${request.url}`);
-    try {
-        const query = Object.fromEntries(request.query.entries());
-        const result = await taskService.getTasks(query);
-        return successResponse(result, 200);
-    } catch (error) {
-        return errorResponse(error, context);
-    }
-}
-
+    const query = Object.fromEntries(request.query.entries());
+    return taskService.getTasks(query);
+});
 app.http('GetTasks', { methods: ['GET'], authLevel: 'anonymous', handler: getTasksHandler });
 
-export async function getTaskHandler(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+export const getTaskHandler = handleHttp(async (request, context) => {
     context.log(`[HTTP GET] Processing GetTask: ${request.url}`);
-    try {
-        const id = request.query.get('id') || '';
-        const organizationId = request.query.get('organizationId') || '';
-        const task = await taskService.getTaskById(id, organizationId);
-        return successResponse(task, 200);
-    } catch (error) {
-        return errorResponse(error, context);
-    }
-}
-
+    const id = request.query.get('id') || '';
+    const organizationId = request.query.get('organizationId') || '';
+    return taskService.getTaskById(id, organizationId);
+});
 app.http('GetTask', { methods: ['GET'], authLevel: 'anonymous', handler: getTaskHandler });
 
-export async function insertTaskHandler(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+export const insertTaskHandler = handleHttp(async (request, context) => {
     context.log(`[HTTP POST] Processing InsertTask: ${request.url}`);
-    try {
-        const body = await request.json();
-        const createdTask = await taskService.createTask(body);
-        return successResponse(createdTask, 201);
-    } catch (error) {
-        return errorResponse(error, context);
-    }
-}
-
+    const body = await request.json();
+    return taskService.createTask(body);
+}, 201);
 app.http('InsertTask', { methods: ['POST'], authLevel: 'anonymous', handler: insertTaskHandler });
 
-export async function updateTaskHandler(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+export const updateTaskHandler = (handleHttp(async (request, context) => {
     context.log(`[HTTP PATCH] Processing UpdateTask: ${request.url}`);
-    try {
-        const id = request.query.get('id') || '';
-        const organizationId = request.query.get('organizationId') || '';
-        const body = await request.json();
-        const updatedTask = await taskService.updateTask(id, organizationId, body);
-        return successResponse(updatedTask, 200);
-    } catch (error) {
-        return errorResponse(error, context);
-    }
-}
-
+    const id = request.query.get('id') || '';
+    const organizationId = request.query.get('organizationId') || '';
+    const body = await request.json();
+    return taskService.updateTask(id, organizationId, body);
+}));
 app.http('UpdateTask', { methods: ['PATCH', 'POST'], authLevel: 'anonymous', handler: updateTaskHandler });
 
-export async function deleteTaskHandler(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+export const deleteTaskHandler = handleHttp(async (request, context) => {
     context.log(`[HTTP DELETE] Processing DeleteTask: ${request.url}`);
-    try {
-        const id = request.query.get('id') || '';
-        const organizationId = request.query.get('organizationId') || '';
-        await taskService.deleteTask(id, organizationId);
-        return successResponse({ message: 'Task berhasil dihapus.' }, 200);
-    } catch (error) {
-        return errorResponse(error, context);
-    }
-}
-
+    const id = request.query.get('id') || '';
+    const organizationId = request.query.get('organizationId') || '';
+    await taskService.deleteTask(id, organizationId);
+    return { message: 'Task berhasil dihapus.' };
+});
 app.http('DeleteTask', { methods: ['DELETE'], authLevel: 'anonymous', handler: deleteTaskHandler });
 
-export async function bulkDeleteTasksHandler(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+export const bulkDeleteTasksHandler = handleHttp(async (request, context) => {
     context.log(`[HTTP DELETE] Processing BulkDeleteTasks: ${request.url}`);
-    try {
-        const organizationId = request.query.get('organizationId') || '';
-        const body = await request.json();
-
-        const result = await taskService.bulkDeleteTasks(body, organizationId);
-        return successResponse(
-            { message: `Berhasil menghapus ${result.deletedCount} tasks.`, ...result },
-            200
-        );
-    } catch (error) {
-        return errorResponse(error, context);
-    }
-}
-
+    const organizationId = request.query.get('organizationId') || '';
+    const body = await request.json();
+    const result = await taskService.bulkDeleteTasks(body, organizationId);
+    return { message: `Berhasil menghapus ${result.deletedCount} tasks.`, ...result };
+});
 app.http('BulkDeleteTasks', { methods: ['DELETE'], authLevel: 'anonymous', handler: bulkDeleteTasksHandler });
