@@ -1,4 +1,4 @@
-import { SqlParameter, SqlQuerySpec } from '@azure/cosmos';
+import { BulkOperationType, OperationInput, SqlParameter, SqlQuerySpec } from '@azure/cosmos';
 import { getTaskContainer } from '../config/cosmos.js';
 import { TaskQueryFilterDTO, PaginatedTasksDTO, UpdateTaskDTO } from '../dtos/task.dto.js';
 import { Task } from '../models/task.model.js';
@@ -44,14 +44,18 @@ export class TaskRepository {
     }
 
     async bulkDelete(ids: string[], organizationId: string): Promise<number> {
-        const BATCH_SIZE = 10;
-        let successCount = 0;
+        const container = getTaskContainer();
+        const operations: OperationInput[] = ids.map((id) => ({
+            operationType: BulkOperationType.Delete,
+            id: id,
+            partitionKey: organizationId,
+        }));
 
-        for (let i = 0; i < ids.length; i+= BATCH_SIZE) {
-            const chunk = ids.slice(i, i + BATCH_SIZE);
-            const result = await Promise.all(chunk.map((id) => this.delete(id, organizationId)));
-            successCount += result.filter(Boolean).length;
-        }
+        const results = await container.items.executeBulkOperations(operations);
+
+        const successCount = results.filter(
+            (res) => res.response?.statusCode && res.response.statusCode < 300
+        ).length;
 
         return successCount;
     }
@@ -131,7 +135,7 @@ export class TaskRepository {
         const items = dataResponse.resources;
         const totalPages = Math.ceil(total / safePageSize);
 
-        return { items, total, page: safePage, pageSize: safePageSize, totalPages,  };
+        return { items, total, page: safePage, pageSize: safePageSize, totalPages, };
     }
 }
 
