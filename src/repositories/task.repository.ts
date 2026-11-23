@@ -1,4 +1,4 @@
-import { SqlParameter, SqlQuerySpec } from '@azure/cosmos';
+import { BulkOperationType, OperationInput, SqlParameter, SqlQuerySpec } from '@azure/cosmos';
 import { getTaskContainer } from '../config/cosmos.js';
 import { TaskQueryFilterDTO, PaginatedTasksDTO, UpdateTaskDTO } from '../dtos/task.dto.js';
 import { Task } from '../models/task.model.js';
@@ -44,9 +44,20 @@ export class TaskRepository {
     }
 
     async bulkDelete(ids: string[], organizationId: string): Promise<number> {
-        const deletePromises = ids.map((id) => this.delete(id, organizationId));
-        const results = await Promise.all(deletePromises);
-        return results.filter(Boolean).length;
+        const container = getTaskContainer();
+        const operations: OperationInput[] = ids.map((id) => ({
+            operationType: BulkOperationType.Delete,
+            id: id,
+            partitionKey: organizationId,
+        }));
+
+        const results = await container.items.executeBulkOperations(operations);
+
+        const successCount = results.filter(
+            (res) => res.response?.statusCode && res.response.statusCode < 300
+        ).length;
+
+        return successCount;
     }
 
     async findWithFilters(filters: TaskQueryFilterDTO): Promise<PaginatedTasksDTO> {
@@ -56,6 +67,8 @@ export class TaskRepository {
             search,
             status,
             priority,
+            dueDate,
+            tags,
             sortBy,
             sortOrder = 'desc',
             page = 1,
@@ -75,6 +88,15 @@ export class TaskRepository {
         if (priority) {
             conditions.push('c.priority = @priority');
             parameters.push({ name: '@priority', value: priority });
+        }
+        if (dueDate) {
+            conditions.push('STARTSWITH(c.dueDate, @dueDate)');
+            parameters.push({ name: '@dueDate', value: dueDate });
+        }
+        if (tags && tags.trim()) {
+            const cleanTag = tags.trim().replace(/^#/, '').toLowerCase();
+            conditions.push('ARRAY_CONTAINS(c.tags, @tags)');
+            parameters.push({ name: '@tags', value: cleanTag });
         }
         if (search && search.trim() !== '') {
             conditions.push(
@@ -113,7 +135,7 @@ export class TaskRepository {
         const items = dataResponse.resources;
         const totalPages = Math.ceil(total / safePageSize);
 
-        return { items, total, page: safePage, pageSize: safePageSize, totalPages };
+        return { items, total, page: safePage, pageSize: safePageSize, totalPages, };
     }
 }
 

@@ -4,6 +4,9 @@ import { BadRequestError } from '../utils/errors.util.js';
 export const TaskStatusEnum = z.enum(['todo', 'in-progress', 'completed']);
 export const TaskPriorityEnum = z.enum(['low', 'medium', 'high']);
 
+// Helper Validator
+const TagItemSchema = z.string().trim().max(50).transform((val) => val.replace(/^#/, '').toLowerCase());
+
 export const CreateTaskSchema = z.object({
     organizationId: z.string().uuid({ message: 'organizationId harus berupa format UUID yang valid' }),
     title: z.string().trim().min(1, { message: 'title tidak boleh kosong' }).max(100, { message: 'title maksimal 100 karakter' }),
@@ -11,7 +14,7 @@ export const CreateTaskSchema = z.object({
     dueDate: z.string().datetime({ message: 'dueDate harus berupa format ISO datetime yang valid' }).optional(),
     priority: TaskPriorityEnum.optional().default('medium'),
     status: TaskStatusEnum.optional().default('todo'),
-    tags: z.array(z.string().max(50)).optional().default([]),
+    tags: z.array(TagItemSchema).optional().default([]),
     customFields: z.record(z.string(), z.any()).optional().default({}),
 });
 
@@ -21,7 +24,7 @@ export const UpdateTaskSchema = z.object({
     dueDate: z.string().datetime({ message: 'dueDate harus berupa format ISO datetime yang valid' }).optional(),
     priority: TaskPriorityEnum.optional(),
     status: TaskStatusEnum.optional(),
-    tags: z.array(z.string().max(50)).optional(),
+    tags: z.array(TagItemSchema).optional(),
     customFields: z.record(z.string(), z.any()).optional(),
 }).refine((data) => Object.keys(data).length > 0, { message: 'Payload update tidak boleh kosong' });
 
@@ -30,6 +33,8 @@ export const TaskFilterSchema = z.object({
     search: z.string().optional(),
     status: TaskStatusEnum.optional(),
     priority: TaskPriorityEnum.optional(),
+    dueDate: z.string().optional(),
+    tags: z.string().optional(),
     sortBy: z.enum(['title', 'dueDate', 'priority', 'status', 'createdAt']).optional(),
     sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
     page: z.coerce.number().int().positive().optional().default(1),

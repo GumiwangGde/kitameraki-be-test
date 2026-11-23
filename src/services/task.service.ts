@@ -49,10 +49,8 @@ export class TaskService {
   async updateTask(id: string, organizationId: string, input: unknown): Promise<Task> {
     this.validateRequiredParams(id, organizationId);
     const validatedUpdates = validateWithZod(UpdateTaskSchema, input);
-    const existingTask = await this.repo.findById(id, organizationId);
-    if (!existingTask) throw new NotFoundError(`Task dengan ID '${id}' tidak ditemukan untuk diperbarui.`);
     const updatedTask = await this.repo.update(id, organizationId, validatedUpdates);
-    if (!updatedTask) throw new NotFoundError(`Gagal memperbarui task dengan ID '${id}'.`);
+    if (!updatedTask) throw new NotFoundError(`Task dengan ID '${id}' tidak ditemukan untuk diperbarui.`);
     return updatedTask;
   }
 
