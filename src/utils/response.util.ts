@@ -1,10 +1,17 @@
 import { HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import { AppError } from './errors.util.js';
+import { AuthUser, verifyToken } from './auth.util.js';
 
 type ControllerLogic<T> = (
     request: HttpRequest,
     context: InvocationContext
 ) => Promise<T> | T;
+
+type AuthenticatedControllerLogic<T> = (
+    request: HttpRequest,
+    context: InvocationContext,
+    user: AuthUser,
+) => Promise<T> | T
 
 export function successResponse<T>(data: T, status: number = 200): HttpResponseInit {
     return {
@@ -80,4 +87,14 @@ export function handleHttp<T>(logic: ControllerLogic<T>, successStatus: number =
             return errorResponse(error, context);
         }
     };
+}
+
+export function handleAuthenticatedHttp<T>(
+    logic: AuthenticatedControllerLogic<T>,
+    successStatus = 200,
+) {
+    return handleHttp(async (request, context) => {
+        const user = await verifyToken(request.headers.get('authorization'));
+        return logic(request, context, user);
+    }, successStatus);
 }

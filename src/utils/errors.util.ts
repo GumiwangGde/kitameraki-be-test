@@ -7,6 +7,11 @@ export abstract class AppError extends Error {
     }
 }
 
+export class UnauthorizedError extends AppError {
+    readonly statusCode = 401;
+    readonly errorCode = 'UNAUTHORIZED';
+}
+
 export class BadRequestError extends AppError {
     readonly statusCode = 400;
     readonly errorCode = 'BAD_REQUEST';
