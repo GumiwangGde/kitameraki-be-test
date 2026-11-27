@@ -4,8 +4,7 @@ import { handleAuthenticatedHttp } from '../utils/response.util.js';
 
 export const getFormSettingsHandler = handleAuthenticatedHttp(async (request, context, user) => {
     context.log(`[HTTP GET] Processing GetFormSettings: ${request.url}`);
-    const organizationId = user.tenantId;
-    return formSettingService.getSettings(organizationId);
+    return formSettingService.getSettings(user.tenantId);
 });
 app.http('GetFormSettings', { methods: ['GET'], authLevel: 'anonymous', handler: getFormSettingsHandler });
 

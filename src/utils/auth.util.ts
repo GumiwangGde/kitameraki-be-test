@@ -1,5 +1,5 @@
 import { createRemoteJWKSet, jwtVerify } from 'jose';
-import { UnauthorizedError } from './errors.util.js';
+import { InternalServerError, UnauthorizedError } from './errors.util.js';
 
 export interface AuthUser {
     userId: string;
@@ -18,21 +18,21 @@ export async function verifyToken(authHeader: string | null): Promise<AuthUser> 
         throw new UnauthorizedError('Authorization header wajib disertakan dengan format Bearer')
     }
 
+    const clientId = process.env.AZURE_CLIENT_ID;
+    if (!clientId) throw new InternalServerError("Konfigurasi AZURE_CLIENT_ID belum diatur di server");
+
     const token = authHeader.substring(7).trim();
+    if (!token) throw new UnauthorizedError('Token tidak boleh kosong');
 
     try {
-        const { payload } = await jwtVerify(token, JWKS, {
-            audience: process.env.AZURE_CLIENT_ID
-        }); 
+        const { payload } = await jwtVerify(token, JWKS, { audience: [clientId, `api://${clientId}`] }); 
 
         const issuer = payload.iss || '';
         if (!issuer.startsWith('https://login.microsoftonline.com/') || !issuer.endsWith('/v2.0')) {
             throw new UnauthorizedError('Issuer token tidak valid');
         }
 
-        if (!payload.tid) {
-            throw new UnauthorizedError('Token tidak memiliki klaim tenantId (tid).');
-        }
+        if (!payload.tid) throw new UnauthorizedError('Token tidak memiliki klaim tenantId (tid).');
 
         return {
             userId: (payload.oid || payload.sub || '') as string,
